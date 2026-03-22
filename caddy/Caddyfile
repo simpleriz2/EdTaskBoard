@@ -1,0 +1,16 @@
+:80 {
+    # tldraw sync WebSocket
+    handle /tldraw-sync* {
+        reverse_proxy server:3001
+    }
+
+    # Socket.io (requires sticky sessions for polling, but WebSocket is fine)
+    handle /socket.io/* {
+        reverse_proxy server:3001
+    }
+
+    # All other traffic → Next.js
+    handle {
+        reverse_proxy app:3000
+    }
+}

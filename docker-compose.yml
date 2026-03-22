@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    expose:
+      - "3000"
+    depends_on:
+      - server
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    expose:
+      - "3001"
+    volumes:
+      - ./data:/usr/src/app/data
+
+  caddy:
+    image: caddy:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      - app
+      - server
+
+  turnserver:
+    image: coturn/coturn
+    command: >
+      turnserver -a -o -v -n --no-dtls --no-tls
+      -u test:test -r myrealm
+      --min-port 50000 --max-port 50050
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "50000-50050:50000-50050/udp"
